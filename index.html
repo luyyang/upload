@@ -1,61 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>img upload</title>
     <style>
-        img{
-            width: 600px;
-            height: 400px;
-        }
+      img {
+        width: 180px;
+        height: 120px;
+        border-right: 1px solid whitesmoke;
+      }
     </style>
-</head>
-<body>
-    <input type="file" name="file" id="fileIpt">
-    <div><img src="" alt=""></div>
+  </head>
+  <body>
+    <!-- 多选 multiple -->
+    <div>
+      <input type="file" name="file" id="fileIpt" multiple />
+      <!-- <button id="btn">上传</button> -->
+    </div>
+    <div id="pre"></div>
     <script>
-        //获取DOM节点
-        const fileIpt = document.querySelector("#fileIpt");
-        //监听input的change
-        fileIpt.addEventListener('change',function(ev){
-            //获取选中的文件
-            let files = ev.target.files;
-            //判断是否选取了文件
-            if(!files.length)
-                return;
-            //把文件传入preview函数中
-            preview(files[0]);
-            //将文件转为base64编码以便预览
-            function preview(file){
-                let reader;
-                if(file){
-                    //创建文件读取器
-                    reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    //转换后的base64编码在ev.target.result中
-                    reader.onload = function(ev){
-                        //把base64放到img中
-                        document.querySelector('img').src = ev.target.result;
-                    }
-                }
-            }
-            
-            //创建FormData对象
-            const formdata = new FormData();
-            //把文件添加到formdata里面(键名/key，文件对象/value，文件名称)
-            formdata.append('ufile', files[0], files[0].name);
-            //使用xhr把formdata发送出去
-            const xhr = new XMLHttpRequest();
-            xhr.open('post','/upload',true);
-            xhr.send(formdata);
-            xhr.onreadystatechange = function(){
-                if(xhr.readyState === 4 && xhr.status === 200){
-                    console.log('上传成功');
-                }
-            }
-        })
+      //获取DOM节点
+      const fileIpt = document.querySelector("#fileIpt");
+      //   const btn = document.querySelector("#btn");
+      const pre = document.querySelector("#pre");
+      //监听input的change
+      fileIpt.addEventListener("change", function (ev) {
+        //获取选中的文件
+        let files = ev.target.files;
+        //判断是否选取了文件
+        if (!files.length) return;
+        console.log(files);
+        //把文件传入preview函数中
+        for (let i = 0; i < files.length; i++) {
+          preview(files[i]);
+        }
+        //将文件转为base64编码以便预览
+        function preview(file) {
+          let reader;
+          if (file) {
+            //创建文件读取器
+            reader = new FileReader();
+            reader.readAsDataURL(file);
+            //转换后的base64编码在ev.target.result中
+            reader.onload = function (ev) {
+              //把base64放到img中
+              const i = document.createElement("img");
+              i.src = ev.target.result;
+              pre.appendChild(i);
+            };
+          }
+        }
+        // btn.onclick = function () {
+        //创建FormData对象
+        const formdata = new FormData();
+        //把文件添加到formdata里面(键名/key，文件对象/value，文件名称)
+        for (let i = 0; i < files.length; i++) {
+          formdata.append("ufile", files[i], files[i].name);
+        }
+
+        //使用xhr把formdata发送出去
+        const xhr = new XMLHttpRequest();
+        xhr.open("post", "/upload", true);
+        xhr.send(formdata);
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            console.log("上传成功");
+          }
+        };
+        // };
+      });
     </script>
-</body>
+  </body>
 </html>
