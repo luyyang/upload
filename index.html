@@ -5,9 +5,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>img upload</title>
+    <style>
+        img{
+            width: 600px;
+            height: 400px;
+        }
+    </style>
 </head>
 <body>
     <input type="file" name="file" id="fileIpt">
+    <div><img src="" alt=""></div>
     <script>
         //获取DOM节点
         const fileIpt = document.querySelector("#fileIpt");
@@ -18,6 +25,23 @@
             //判断是否选取了文件
             if(!files.length)
                 return;
+            //把文件传入preview函数中
+            preview(files[0]);
+            //将文件转为base64编码以便预览
+            function preview(file){
+                let reader;
+                if(file){
+                    //创建文件读取器
+                    reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    //转换后的base64编码在ev.target.result中
+                    reader.onload = function(ev){
+                        //把base64放到img中
+                        document.querySelector('img').src = ev.target.result;
+                    }
+                }
+            }
+            
             //创建FormData对象
             const formdata = new FormData();
             //把文件添加到formdata里面(键名/key，文件对象/value，文件名称)
