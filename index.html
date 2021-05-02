@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>img upload</title>
+</head>
+<body>
+    <input type="file" name="file" id="fileIpt">
+    <script>
+        //获取DOM节点
+        const fileIpt = document.querySelector("#fileIpt");
+        //监听input的change
+        fileIpt.addEventListener('change',function(ev){
+            //获取选中的文件
+            let files = ev.target.files;
+            //判断是否选取了文件
+            if(!files.length)
+                return;
+            //创建FormData对象
+            const formdata = new FormData();
+            //把文件添加到formdata里面(键名/key，文件对象/value，文件名称)
+            formdata.append('ufile', files[0], files[0].name);
+            //使用xhr把formdata发送出去
+            const xhr = new XMLHttpRequest();
+            xhr.open('post','/upload',true);
+            xhr.send(formdata);
+            xhr.onreadystatechange = function(){
+                if(xhr.readyState === 4 && xhr.status === 200){
+                    console.log('上传成功');
+                }
+            }
+        })
+    </script>
+</body>
+</html>
