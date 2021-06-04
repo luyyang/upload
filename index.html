@@ -13,10 +13,15 @@
       }
       #pre div{
         display: inline-block;
+        margin-top: 10px;
       }
       #pre span{
         display: block;
         text-align: center;
+      }
+      #pre button{
+        margin-left: 50%;
+        transform: translate(-50%);
       }
     </style>
   </head>
@@ -40,51 +45,37 @@
       //监听input的change
       fileIpt.addEventListener("change", function (ev) {
         //获取选中的文件
-        let files = ev.target.files;
+        let files = Array.from(ev.target.files);
         //判断是否选取了文件
         if (!files.length) return;
         console.log(files);
         //把文件传入preview函数中
         for (let i = 0; i < files.length; i++) {
-          preview(files[i]);
+          preview(files[i],files);
         }
-
+        console.log(files);
+        //图片上传
+        btn.addEventListener('click',function(){
+          fileUpload(files);
+        });
         
-        //将文件转为base64编码以便预览
-        function preview(file) {
-          let reader;
-          if (file) {
-            //创建文件读取器
-            reader = new FileReader();
-            reader.readAsDataURL(file);
-            //转换后的base64编码在ev.target.result中
-            reader.onload = function (ev) {
-              //把base64放到img中
-              const i = document.createElement("img");
-              const div = document.createElement("div");
-              const span_name = document.createElement("span");
-              const span_size = document.createElement("span");
-              span_name.innerHTML = file.name;
-              span_size.innerHTML = file.size+'K';
-              i.src = ev.target.result;
-              i.className = 'p';
-              i.addEventListener("click",(function(){
-                let _this = this;
-                // console.log('img click')
-                imgShow("#outerdiv", "#innerdiv", "#bigimg", _this); 
-              }))
-              div.appendChild(i);
-              div.appendChild(span_name);
-              div.appendChild(span_size);
-              pre.appendChild(div);
-
-
-            };
-
-            
+      });
+      //删除图片
+      function fileDelete(file,files,ev){
+        // console.log(ev.target.parentNode);
+        ev.target.parentNode.remove();
+        // console.log(files);
+        for(let i=0; i<files.length; i++){
+          if(ev.target.id === files[i].name){
+            files.splice(i,1);
+            break;
           }
         }
-        btn.onclick = function () {
+        console.log(files);
+
+      }
+      //上传图片
+      function fileUpload(files){
         //创建FormData对象
         const formdata = new FormData();
         //把文件添加到formdata里面(键名/key，文件对象/value，文件名称)
@@ -102,19 +93,60 @@
           }
         };
         };
-      });
+      //将文件转为base64编码以便预览
+      function preview(file,files){
+          let reader;
+          if (file) {
+            //创建文件读取器
+            reader = new FileReader();
+            reader.readAsDataURL(file);
+            //转换后的base64编码在ev.target.result中
+            reader.onload = function (ev) {
+              //把base64放到img中
+              const i = document.createElement("img");
+              const div = document.createElement("div");
+              // const span_name = document.createElement("span");
+              const span_size = document.createElement("span");
+              const delete_btn = document.createElement("button");
+              // span_name.innerHTML = file.name;
+              if(file.size>=1024*1024){
+                span_size.innerHTML = Math.round(file.size/1024/1024)+'M';
+              }else{
+                span_size.innerHTML = Math.round(file.size/1024)+'KB';
+              }
+              
+              i.src = ev.target.result;
+              i.className = 'p';
+              delete_btn.innerText='删除';
+              delete_btn.id=file.name;
+              delete_btn.addEventListener('click',function(ev){
+                fileDelete(file,files,ev);
+                // console.log(ev)
+              });
+              i.addEventListener("click",(function(){
+                let _this = this;
+                // console.log('img click')
+                imgShow("#outerdiv", "#innerdiv", "#bigimg", _this); 
+              }))
+              // div.appendChild(span_name);
+              div.appendChild(i);
+              div.appendChild(span_size);
+              div.appendChild(delete_btn);
+              pre.appendChild(div);
 
-      
 
+            };
 
+            
+          }
+        }
+      //放大预览图片
       function imgShow(outerdiv, innerdiv, bigimg, _this){
         let src = _this.src;//获取当前点击的pimg元素中的src属性
         const img = document.querySelector(bigimg);
         const out = document.querySelector(outerdiv);
         const inner = document.querySelector(innerdiv);
         img.src = src;
-
-
         img.onload=function(){
           // console.log('img onload')
           let windowW = window.screen.availWidth;//获取当前窗口宽度 
@@ -156,9 +188,9 @@
           // console.log('cancel')
     
         }
-
-
-        function setOpacity(ele, opacity) {
+      }
+      //设置透明度
+      function setOpacity(ele, opacity) {
           if (ele.style.opacity != undefined) {
             ///兼容FF和GG和新版本IE
             ele.style.opacity = opacity / 100;
@@ -167,8 +199,8 @@
             ele.style.filter = "alpha(opacity=" + opacity + ")";
           }
         }
-
-        function fadein(ele, opacity, speed) {
+      //渐进
+      function fadein(ele, opacity, speed) {
         if (ele) {
           ele.style.display = 'block';
         var v = ele.style.filter.replace("alpha(opacity=", "").replace(")", "") || ele.style.opacity;
@@ -186,8 +218,8 @@
         }, 50);
     }
 }
-
-function fadeout(ele, opacity, speed) {
+      //渐出
+      function fadeout(ele, opacity, speed) {
     if (ele) {
         var v = ele.style.filter.replace("alpha(opacity=", "").replace(")", "") || ele.style.opacity || 100;
         v < 1 && (v = v * 100);
@@ -205,7 +237,7 @@ function fadeout(ele, opacity, speed) {
         ele.style.display = 'none';
     }
 }
-      }
+      
     </script>
   </body>
 </html>
