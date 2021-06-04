@@ -11,19 +11,31 @@
         height: 120px;
         border-right: 1px solid whitesmoke;
       }
+      #pre div{
+        display: inline-block;
+      }
+      #pre span{
+        display: block;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
     <!-- 多选 multiple -->
     <div>
       <input type="file" name="file" id="fileIpt" multiple />
-      <!-- <button id="btn">上传</button> -->
+      <button id="btn">上传</button>
+      <!-- 放大图片 -->
+      <div id="outerdiv" style="position:fixed;top:0;left:0;background:rgba(0,0,0,0.7);z-index:2;width:100%;height:100%;display:none;">
+        <div id="innerdiv" style="position:absolute;">
+          <img id="bigimg" style="border:5px solid #fff;" src="" />
+        </div>
     </div>
     <div id="pre"></div>
     <script>
       //获取DOM节点
       const fileIpt = document.querySelector("#fileIpt");
-      //   const btn = document.querySelector("#btn");
+      const btn = document.querySelector("#btn");
       const pre = document.querySelector("#pre");
       //监听input的change
       fileIpt.addEventListener("change", function (ev) {
@@ -36,6 +48,8 @@
         for (let i = 0; i < files.length; i++) {
           preview(files[i]);
         }
+
+        
         //将文件转为base64编码以便预览
         function preview(file) {
           let reader;
@@ -47,12 +61,30 @@
             reader.onload = function (ev) {
               //把base64放到img中
               const i = document.createElement("img");
+              const div = document.createElement("div");
+              const span_name = document.createElement("span");
+              const span_size = document.createElement("span");
+              span_name.innerHTML = file.name;
+              span_size.innerHTML = file.size+'K';
               i.src = ev.target.result;
-              pre.appendChild(i);
+              i.className = 'p';
+              i.addEventListener("click",(function(){
+                let _this = this;
+                // console.log('img click')
+                imgShow("#outerdiv", "#innerdiv", "#bigimg", _this); 
+              }))
+              div.appendChild(i);
+              div.appendChild(span_name);
+              div.appendChild(span_size);
+              pre.appendChild(div);
+
+
             };
+
+            
           }
         }
-        // btn.onclick = function () {
+        btn.onclick = function () {
         //创建FormData对象
         const formdata = new FormData();
         //把文件添加到formdata里面(键名/key，文件对象/value，文件名称)
@@ -69,8 +101,111 @@
             console.log("上传成功");
           }
         };
-        // };
+        };
       });
+
+      
+
+
+      function imgShow(outerdiv, innerdiv, bigimg, _this){
+        let src = _this.src;//获取当前点击的pimg元素中的src属性
+        const img = document.querySelector(bigimg);
+        const out = document.querySelector(outerdiv);
+        const inner = document.querySelector(innerdiv);
+        img.src = src;
+
+
+        img.onload=function(){
+          // console.log('img onload')
+          let windowW = window.screen.availWidth;//获取当前窗口宽度 
+          // console.log(windowW);
+          let windowH = window.screen.availHeight;//获取当前窗口高度 
+          // console.log(windowH);
+          let realWidth = this.width;//获取图片真实宽度 
+          // console.log(realWidth);
+          let realHeight = this.height;//获取图片真实高度 
+          // console.log(realHeight);
+          let imgWidth, imgHeight; 
+          let scale = 0.8;//缩放尺寸，当图片真实宽度和高度大于窗口宽度和高度时进行缩放 
+          if(realHeight>windowH*scale) {//判断图片高度 
+            imgHeight = windowH*scale;//如大于窗口高度，图片高度进行缩放 
+            imgWidth = imgHeight/realHeight*realWidth;//等比例缩放宽度 
+          if(imgWidth>windowW*scale) {//如宽度扔大于窗口宽度 
+            imgWidth = windowW*scale;//再对宽度进行缩放 
+          } 
+          } else if(realWidth>windowW*scale) {//如图片高度合适，判断图片宽度 
+            imgWidth = windowW*scale;//如大于窗口宽度，图片宽度进行缩放 
+            imgHeight = imgWidth/realWidth*realHeight;//等比例缩放高度 
+          } else {//如果图片真实高度和宽度都符合要求，高宽不变 
+            imgWidth = realWidth; 
+            imgHeight = realHeight; 
+          } 
+          img.style.width=imgWidth+'px';
+          img.style.height=imgHeight+'px';
+          // console.log(imgWidth);
+          // console.log(imgHeight);
+          var w = (windowW-imgWidth)/2;//计算图片与窗口左边距 
+          var h = (windowH-imgHeight)/4;//计算图片与窗口上边距 
+          inner.style.bottom = h+'px';//设置#innerdiv的top和left属性 
+          inner.style.left = w+'px';
+          fadein(out, 80, 6000);
+          
+        }; 
+          out.onclick=function(){//再次点击淡出消失弹出层 
+          fadeout(this, 0, 6000);
+          // console.log('cancel')
+    
+        }
+
+
+        function setOpacity(ele, opacity) {
+          if (ele.style.opacity != undefined) {
+            ///兼容FF和GG和新版本IE
+            ele.style.opacity = opacity / 100;
+          } else {
+            ///兼容老版本ie
+            ele.style.filter = "alpha(opacity=" + opacity + ")";
+          }
+        }
+
+        function fadein(ele, opacity, speed) {
+        if (ele) {
+          ele.style.display = 'block';
+        var v = ele.style.filter.replace("alpha(opacity=", "").replace(")", "") || ele.style.opacity;
+        v < 1 && (v = v * 100);
+        var count = speed / 1000;
+        var avg = count < 2 ? (opacity / count) : (opacity / count - 1);
+        var timer = null;
+        timer = setInterval(function() {
+            if (v < opacity) {
+                v += avg;
+                setOpacity(ele, v);
+            } else {
+                clearInterval(timer);
+            }
+        }, 50);
+    }
+}
+
+function fadeout(ele, opacity, speed) {
+    if (ele) {
+        var v = ele.style.filter.replace("alpha(opacity=", "").replace(")", "") || ele.style.opacity || 100;
+        v < 1 && (v = v * 100);
+        var count = speed / 1000;
+        var avg = (100 - opacity) / count;
+        var timer = null;
+        timer = setInterval(function() {
+            if (v - avg > opacity) {
+                v -= avg;
+                setOpacity(ele, v);
+            } else {
+                clearInterval(timer);
+            }
+        }, 50);
+        ele.style.display = 'none';
+    }
+}
+      }
     </script>
   </body>
 </html>
